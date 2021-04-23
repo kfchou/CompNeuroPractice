@@ -1,0 +1,22 @@
+% synaptic current calculation
+% @ Kenny Chou, 2020
+
+% default parameters
+gSYN = 1; 
+ESYN = 0; 
+tauD = 10; 
+delay = 0;
+netcon = ones(N_pre,N_post);
+
+% EPSP waveforms
+%% epsp(t) = (1/tauD)*t.*(exp(1-t/tauD)).*(t>0)    % alpha function
+epsp(t) = (exp(-t/tauD)).*(t>0)                    % single exponential
+
+% Channel opening probability
+p' = (exp(1)*epsp(t-tspike_pre-delay)-p)/tauD      % mysterious equation
+p(0) = 0
+
+I(X,t) = gSYN .* p * netcon .*(X - ESYN)
+@isyn += I(V_post,t)
+
+monitor functions

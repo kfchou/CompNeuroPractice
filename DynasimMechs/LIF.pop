@@ -1,0 +1,44 @@
+% Integrate and fire neurons
+% @ Kenny Chou, 2020
+% may have error in dV/dt definition
+
+%%%%%%%% default parameters %%%%%%%%%%
+C = 0.5;            % membrane capacitance [nF]
+g_leak = 1/100;     % leak resistance [uS = 1/Mohm)]
+E_leak = -60;       % equilibrium potential/resting potential [mV]
+noise = 0;          % noise [nA]
+
+%%%%%%%%%%%% adaptation %%%%%%%%%%%%%%
+g_ad = 0;           % adaptation conductance [uS]
+E_k = -70;          % adaptation channel [mV]
+
+%%%%%% action potential voltages %%%%%
+V_thresh = -40;     % spike threshold [mV]
+V_spike = 50;       % spike value [mV]
+V_reset = -70;      % reset voltage, originally -50ms. [mV]
+V_init = E_leak;    % initial voltage
+t_ref = 0.5;        % refractory period, t_ref/fs = [ms]
+
+%%%%%%% current injection %%%%%%%%%%%%
+Itonic = 0;         % injected current, [nA]
+ton = 0;            % [ms]
+toff = 1000;        % [ms]
+I(t)=Itonic*(t>ton&t<toff)
+I(t) = loadHairCellPotentials()
+
+dV/dt = ( g_leak*(E_leak - V) + g_ad*(E_k - V) - @isyn + I(t) + noise*randn(1,N_pop)/dt)/C;
+V(0) = V_init;
+
+% use this to have no spikes:
+if(V >= V_thresh)(V = V_reset)
+
+% use these to insert spikes:
+% if(V >= V_spike-10)(V = V_reset)
+% if(V >= V_thresh & V < V_spike-10)(V = V_spike)
+
+% implement refractory period
+if(any(t<tspike+t_ref,1))(V = V_reset)
+
+% keep track of spikes
+monitor V.spikes(V_thresh,1)
+
